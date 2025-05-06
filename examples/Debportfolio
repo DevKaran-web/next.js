@@ -1,0 +1,34 @@
+npx create-next-app -e with-tailwindcss my-portfolio
+cd my-portfolio
+npm install next-themes
+module.exports = {
+  darkMode: 'class',
+  // other configurations...
+};
+import { useTheme } from 'next-themes';
+
+const ThemeSwitch = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      Toggle Theme
+    </button>
+  );
+};
+
+export default ThemeSwitch;
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import ThemeSwitch from '../components/ThemeSwitch';
+
+export default function Home() {
+  return (
+    <div>
+      <Navbar />
+      <ThemeSwitch />
+      {/* Other sections like About, Projects */}
+      <Footer />
+    </div>
+  );
+}
