@@ -1303,7 +1303,7 @@ impl FileSystemPath {
     // Tracks all files and directories matching the glob
     // Follows symlinks as though they were part of the original hierarchy.
     pub fn track_glob(&self, glob: Vc<Glob>, include_dot_files: bool) -> Vc<Completion> {
-        track_glob(self, glob, include_dot_files)
+        track_glob(self.clone(), glob, include_dot_files)
     }
 
     pub fn root(&self) -> Vc<Self> {
@@ -1318,12 +1318,12 @@ impl FileSystemPath {
         self.extension_ref().unwrap_or("").into()
     }
 
-    pub async fn is_inside(&self, other: FileSystemPath) -> Result<Vc<bool>> {
-        Ok(Vc::cell(self.is_inside_ref(&other)))
+    pub fn is_inside(&self, other: &FileSystemPath) -> bool {
+        self.is_inside_ref(&other)
     }
 
-    pub async fn is_inside_or_equal(&self, other: FileSystemPath) -> Result<Vc<bool>> {
-        Ok(Vc::cell(self.is_inside_or_equal_ref(&other)))
+    pub fn is_inside_or_equal(&self, other: &FileSystemPath) -> bool {
+        self.is_inside_or_equal_ref(&other)
     }
 
     /// Creates a new [`FileSystemPath`] like `self` but with the given
@@ -1403,7 +1403,7 @@ pub async fn rebase(
                 .into();
         }
     }
-    Ok(new_base.fs.root().join(new_path))
+    Ok(new_base.fs.root().await?.join(new_path)?)
 }
 
 #[turbo_tasks::value_impl]
@@ -1437,10 +1437,6 @@ impl FileSystemPath {
 
     pub fn read_json5(&self) -> Vc<FileJsonContent> {
         self.fs.read(self.clone()).parse_json5()
-    }
-
-    pub fn track(&self) -> Vc<Completion> {
-        self.fs.track(self.clone())
     }
 
     pub fn write(&self, content: Vc<FileContent>) -> Vc<()> {
@@ -2290,7 +2286,7 @@ impl DirectoryEntry {
         }
     }
 
-    pub fn path(self) -> Option<ResolvedVc<FileSystemPath>> {
+    pub fn path(self) -> Option<FileSystemPath> {
         match self {
             DirectoryEntry::File(path)
             | DirectoryEntry::Directory(path)
@@ -2413,11 +2409,6 @@ impl FileSystem for NullFileSystem {
     #[turbo_tasks::function]
     fn raw_read_dir(&self, _fs_path: FileSystemPath) -> Vc<RawDirectoryContent> {
         RawDirectoryContent::not_found()
-    }
-
-    #[turbo_tasks::function]
-    fn track(&self, _fs_path: FileSystemPath) -> Vc<Completion> {
-        Completion::immutable()
     }
 
     #[turbo_tasks::function]
