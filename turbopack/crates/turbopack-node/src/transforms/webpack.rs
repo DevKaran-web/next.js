@@ -506,7 +506,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     .iter()
                     .map(|(dir, glob)| {
                         self.cwd
-                            .join(dir.clone())
+                            .join(dir.clone())?
                             .track_glob(Glob::new(glob.clone()), false)
                     })
                     .try_join();
