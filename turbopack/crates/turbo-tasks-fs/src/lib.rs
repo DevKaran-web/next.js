@@ -1319,11 +1319,11 @@ impl FileSystemPath {
     }
 
     pub fn is_inside(&self, other: &FileSystemPath) -> bool {
-        self.is_inside_ref(&other)
+        self.is_inside_ref(other)
     }
 
     pub fn is_inside_or_equal(&self, other: &FileSystemPath) -> bool {
-        self.is_inside_or_equal_ref(&other)
+        self.is_inside_or_equal_ref(other)
     }
 
     /// Creates a new [`FileSystemPath`] like `self` but with the given
@@ -1403,7 +1403,7 @@ pub async fn rebase(
                 .into();
         }
     }
-    Ok(new_base.fs.root().await?.join(new_path)?)
+    new_base.fs.root().await?.join(new_path)
 }
 
 #[turbo_tasks::value_impl]
@@ -1437,6 +1437,14 @@ impl FileSystemPath {
 
     pub fn read_json5(&self) -> Vc<FileJsonContent> {
         self.fs.read(self.clone()).parse_json5()
+    }
+
+    /// Reads content of a directory.
+    ///
+    /// DETERMINISM: Result is in random order. Either sort result or do not
+    /// depend on the order.
+    pub fn raw_read_dir(&self) -> Vc<RawDirectoryContent> {
+        self.fs.raw_read_dir(self.clone())
     }
 
     pub fn write(&self, content: Vc<FileContent>) -> Vc<()> {
